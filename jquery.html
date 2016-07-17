@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src ="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+  <style>
+  body { font: 12px Arial;}
+
+  path {
+      stroke: steelblue;
+      stroke-width: 2;
+      fill: none;
+  }
+
+  .axis path,
+  .axis line {
+      fill: none;
+      stroke: black;
+      stroke-width: 2;
+      shape-rendering: crispEdges;-->
+  }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="tabbable">
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#tab1" data-toggle="tab"><b>Graph for Stackbar Chart</b></a></li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane active" id="tab1">
+          <div class="col-lg-5">
+            <div style="float:left">
+              <h4>Data from the JSON file</h4>
+              <table class="table table-bordered" id="myTable">
+              </table>
+            </div>
+          </div>
+          <div class ="col-lg-7">
+            <div id="div2">
+            </div>
+          </div>
+          <div class="col-7">
+            <form class="form-inline" id="form1">
+              <div class="form-group">
+                <input type = "text" id="in1"placeholder="country" size="5" class="form-control"></input>
+              </div>
+              <div class="form-group">
+                <input type = "number" id="in2" placeholder="sugar"  class="form-control"></input>
+              </div>
+              <div class="form-group">
+                <input type = "number" id="in3"placeholder="salt" size="2" class="form-control"></input>
+              </div>
+              <div class="form-group">
+                <button type="button" id="submit" class="btn btn-success" width="100">Add</button>
+              </div>
+            </form>
+          </div>
+        </div><!--end tab pane-->
+      </div><!-- tab content-->
+    </div><!-- tabbable-->
+  </div><!--end container-->
+
+</body>
+
+
+<script>
+
+(function(){
+  var d;
+  var i=0;
+  $.getJSON("filterout.json",function(data){
+
+    d = data;
+
+    row = $('<tr></tr>');
+    $('#myTable').append(row);
+    $.each(data[0],function(key,value){
+      row.append('<th>'+key+'</th>').css({'font-size':25});
+    });
+    $.getScript('graph1.js',function(){
+      graph(d);
+    })
+
+    for(var i=0;i<data.length;i++){
+      row1 = $('<tr></tr>');
+      $('#myTable').append(row1);
+      $.each(data[i],function(key,value){
+        if(key === 'country_name')
+        row1.append('<td>'+(value)+'</td>').css({'font-size':15});
+
+        else {
+          row1.append('<td>'+value.toFixed(2)+'</td>');
+        }
+      });
+      var btn=$('<td></td>');
+      row1.append(btn);
+      btn.append('<button class="btn btn-danger">delete</button>').css('width',100);
+
+    }
+    $('#myTable').on('click',"button",function(){
+
+      var ind = $(this).closest('tr').index();
+
+      data.splice(ind-1,1);
+      d=data;
+      $(this).closest('tr').remove();
+      $('#div2').empty();
+      $.getScript('graph1.js',function(){
+        graph(d);
+      })
+    })
+
+    $('#form1').on('click',"button",function(){
+      var in1 = $('#in1').val();
+      var in2 = $('#in2').val();
+      var in3 = $('#in3').val();
+      if(in1=="" || in2=="" || in3==""){
+        alert("field should not be empty")
+      }
+      else
+      {  var status = true;
+        for(var i=0;i<data.length;i++){
+          if(data[i].country_name==in1){
+            alert(in1+' is already stated in graph');
+            status = false;
+          }
+        }
+        if(status){
+          var obj={};
+          obj['country_name'] = in1;
+          obj['Sugar'] =parseInt(in2);
+          obj['Salt'] = parseInt(in3);
+
+          data.push(obj);
+          var  row = $('<tr></tr>');
+          $('#myTable').append(row);
+          $.each(obj,function(key,value){
+            row.append('<td>'+value+'</td>');
+          })
+
+        }
+
+        var btn=$('<td></td>');
+        row.append(btn);
+        btn.append('<button class="btn btn-danger">delete</button>').css('width',100);
+        $('#div2').empty();
+        $.getScript('graph1.js',function(){
+          graph(data);
+        })
+      }
+    })
+
+  })
+})();
+
+</script>
+</html>
